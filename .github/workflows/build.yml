@@ -1,0 +1,62 @@
+
+
+name: Build LEDE Firmware
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential ccache ecj fastjar file g++ gawk \
+          gettext git java-propose-classpath libelf-dev libncurses5-dev \
+          libncursesw5-dev libssl-dev python2 python2.7-dev python3 unzip wget \
+          python3-distutils python3-setuptools python3-dev rsync subversion \
+          swig time xsltproc zlib1g-dev
+
+      - name: Clone OpenWrt source
+        run: |
+          git clone --depth 1 --branch openwrt-21.02 https://github.com/openwrt/openwrt.git openwrt
+
+      - name: Copy feeds.conf
+        run: cp feeds.conf openwrt/
+
+      - name: Update and install feeds
+        run: |
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Copy config and files
+        run: |
+          cp config/ar9531_defconfig openwrt/.config
+          cp -r files openwrt/
+
+      - name: Run defconfig
+        run: |
+          cd openwrt
+          make defconfig
+
+      - name: Download sources
+        run: |
+          cd openwrt
+          make download -j$(nproc) V=s
+
+      - name: Build firmware
+        run: |
+          cd openwrt
+          make -j$(nproc) V=s
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thdn-printserver-firmware
+          path: openwrt/bin/targets/ath79/generic/
