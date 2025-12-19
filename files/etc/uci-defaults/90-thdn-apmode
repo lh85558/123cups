@@ -1,0 +1,8 @@
+
+#!/bin/sh
+# 一键切换为无线 AP 模式（桥接 LAN）
+uci set wireless.default_radio0.mode='ap'
+uci set wireless.default_radio0.network='lan'
+uci commit wireless
+wifi reload
+exit 0
