@@ -58,4 +58,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: thdn-printserver-firmware
-          path: openwrt/bin/target
+          path: openwrt/bin/targets/ath79/generic/
